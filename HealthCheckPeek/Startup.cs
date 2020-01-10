@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mime;
 using System.Threading.Tasks;
-using HealthCheckPeek.HealthChecks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
@@ -35,23 +34,34 @@ namespace HealthCheckPeek
         {
             services.AddControllers();
             services.AddHealthChecks()
-                .AddCheck<WebsiteAvailabilityCheck1>("website_availability_check", tags: new[] { "website" })
+                .AddAsyncCheck("google_ping_check", () => HealthCheckHelpers.GenerateHealthCheckResultFromPIngRequest("google.com"))
+                .AddAsyncCheck("microsoft_ping_check", () => HealthCheckHelpers.GenerateHealthCheckResultFromPIngRequest("microsoft.com"))
+                .AddAsyncCheck("yahoo_ping_check", () => HealthCheckHelpers.GenerateHealthCheckResultFromPIngRequest("yahoo.com"))
+                .AddAsyncCheck("localhost_ping_check", () => HealthCheckHelpers.GenerateHealthCheckResultFromPIngRequest("localhost"))
+                .AddAsyncCheck("forecast_time_check", () => HealthCheckHelpers.RouteTimingHealthCheck("/weatherforecast"))
+                .AddAsyncCheck("forecast_time_check_slow", () => HealthCheckHelpers.RouteTimingHealthCheck("/weatherforecast/slow"))
                 .AddDbContextCheck<MyDatabaseContext>("database_check", tags: new[] { "database" });
-
+            services.AddHttpContextAccessor();
 
             services.AddDbContext<MyDatabaseContext>(options =>
             {
-                options.UseSqlServer(@"");
+                options.UseSqlServer(@"Connection_string_here");
             });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.Use(async (context, next) =>
+            {
+                HealthCheckHelpers.BaseUrl = $"{ context.Request.Scheme}://{context.Request.Host}";
+                await next();
+            });
+
             app.UseHealthChecks("/health",
                new HealthCheckOptions
                {
-                   ResponseWriter = HealthCheckWriter.WriteResponses
+                   ResponseWriter = HealthCheckHelpers.WriteResponses
                });
 
             if (env.IsDevelopment())
@@ -70,13 +80,13 @@ namespace HealthCheckPeek
                 endpoints.MapHealthChecks("/health/database", new HealthCheckOptions
                 {
                     Predicate = (check) => check.Tags.Contains("database"),
-                    ResponseWriter = HealthCheckWriter.WriteResponses
+                    ResponseWriter = HealthCheckHelpers.WriteResponses
                 });
 
                 endpoints.MapHealthChecks("/health/websites", new HealthCheckOptions
                 {
                     Predicate = (check) => check.Tags.Contains("websites"),
-                    ResponseWriter = HealthCheckWriter.WriteResponses
+                    ResponseWriter = HealthCheckHelpers.WriteResponses
                 });
 
                 endpoints.MapControllers();

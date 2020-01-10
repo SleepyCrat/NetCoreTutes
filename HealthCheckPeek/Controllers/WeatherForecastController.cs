@@ -35,5 +35,12 @@ namespace HealthCheckPeek.Controllers
             })
             .ToArray();
         }
+
+        [HttpGet("slow")]
+        public async Task<string> Slow()
+        {
+            await Task.Delay(3000);
+            return "slow";
+        }
     }
 }
