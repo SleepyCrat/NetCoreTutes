@@ -1,1 +1,2 @@
-<p>login works!</p>
+<button *ngIf="!currentUser.isSignedIn" (click)="loginWithGoogle()">Login With Google</button>
+<a *ngIf="currentUser.isSignedIn" routerLink="/">Go back home</a>

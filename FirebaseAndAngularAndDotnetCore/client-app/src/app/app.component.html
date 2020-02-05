@@ -1,9 +1,8 @@
 <h1>Firebase Example Application</h1>
 <nav>
   <a routerLink="/">Home</a>
-  <a routerLink="/login">Login</a>
-  <a routerLink="/secret">Secret Area</a>
+  <a *ngIf="!currentUser.isSignedIn" routerLink="/login">Login</a>
+  <a *ngIf="currentUser.isSignedIn" routerLink="/secret">Secret Area</a>
+  <a *ngIf="currentUser.isSignedIn" href="#" (click)="logTheUserOut()">Logout</a>
 </nav>
-<router-outlet>
-
-</router-outlet>
+<router-outlet></router-outlet>
