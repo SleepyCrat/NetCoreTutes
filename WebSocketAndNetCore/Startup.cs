@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
+using System.Net.WebSockets;
 
 namespace WebSocketAndNetCore.Web
 {
@@ -50,6 +51,32 @@ namespace WebSocketAndNetCore.Web
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+            });
+
+            app.UseWebSockets();
+            app.Use(async (context, next) =>
+            {
+                if (context.Request.Path == "/ws")
+                {
+                    if (context.WebSockets.IsWebSocketRequest)
+                    {
+                        var socket = await context.WebSockets.AcceptWebSocketAsync();
+                        var squareService = (SquareService)app.ApplicationServices.GetService(typeof(SquareService));
+                        await squareService.AddUser(socket);
+                        while (socket.State == WebSocketState.Open)
+                        {
+                            await Task.Delay(TimeSpan.FromMinutes(1));
+                        }
+                    }
+                    else
+                    {
+                        context.Response.StatusCode = 400;
+                    }
+                }
+                else
+                {
+                    await next();
+                }
             });
             app.UseSpa(config =>
             {
