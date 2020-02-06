@@ -29,6 +29,7 @@ namespace WebSocketAndNetCore.Web
         {
             services.AddControllers();
             services.AddSpaStaticFiles(config => config.RootPath = "wwwroot");
+            services.AddSingleton(typeof(SquareService), new SquareService());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

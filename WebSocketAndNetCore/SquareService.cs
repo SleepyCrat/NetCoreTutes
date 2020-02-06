@@ -22,8 +22,14 @@ namespace WebSocketAndNetCore.Web
             while (socket.State == WebSocketState.Open)
             {
                 var buffer = new byte[1024 * 4];
-                var result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-                var bufferAsString = System.Text.Encoding.ASCII.GetString(buffer);
+                WebSocketReceiveResult socketResponse;
+                var package = new List<byte>();
+                do
+                {
+                    socketResponse = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                    package.AddRange(new ArraySegment<byte>(buffer, 0, socketResponse.Count));
+                } while (!socketResponse.EndOfMessage);
+                var bufferAsString = System.Text.Encoding.ASCII.GetString(package.ToArray());
                 var changeRequest = SquareChangeRequest.FromJson(bufferAsString);
                 await HandleSquareChangeRequest(changeRequest);
             }
