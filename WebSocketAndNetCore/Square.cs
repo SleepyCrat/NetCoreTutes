@@ -14,16 +14,17 @@ namespace WebSocketAndNetCore.Web
         public static IEnumerable<Square> GetInitialSquares()
         {
             var colors = new string[] { "red", "green", "blue" };
-
+            var squares = new List<Square>();
             for (int i = 0; i < 10; i++)
             {
                 var random = new Random();
-                yield return new Square()
+                squares.Add(new Square()
                 {
                     Id = i,
                     Color = colors[random.Next(0, 2)]
-                };
+                });
             }
+            return squares;
         }
     }
 

@@ -14,25 +14,34 @@ namespace WebSocketAndNetCore.Web
         private List<Square> _squares = new List<Square>(Square.GetInitialSquares());
         public async Task AddUser(WebSocket socket)
         {
-            var name = GenerateName();
-            _users.Add(name, socket);
-            await GiveUserTheirName(name, socket);
-            await AnnounceNewUser(name);
-            await SendSquares(socket);
-            while (socket.State == WebSocketState.Open)
+            try
             {
-                var buffer = new byte[1024 * 4];
-                WebSocketReceiveResult socketResponse;
-                var package = new List<byte>();
-                do
+                var name = GenerateName();
+                _users.Add(name, socket);
+                GiveUserTheirName(name, socket).Wait();
+                AnnounceNewUser(name).Wait();
+                SendSquares(socket).Wait();
+                while (socket.State == WebSocketState.Open)
                 {
-                    socketResponse = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-                    package.AddRange(new ArraySegment<byte>(buffer, 0, socketResponse.Count));
-                } while (!socketResponse.EndOfMessage);
-                var bufferAsString = System.Text.Encoding.ASCII.GetString(package.ToArray());
-                var changeRequest = SquareChangeRequest.FromJson(bufferAsString);
-                await HandleSquareChangeRequest(changeRequest);
+                    var buffer = new byte[1024 * 4];
+                    WebSocketReceiveResult socketResponse;
+                    var package = new List<byte>();
+                    do
+                    {
+                        socketResponse = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                        package.AddRange(new ArraySegment<byte>(buffer, 0, socketResponse.Count));
+                    } while (!socketResponse.EndOfMessage);
+                    var bufferAsString = System.Text.Encoding.ASCII.GetString(package.ToArray());
+                    if (!string.IsNullOrEmpty(bufferAsString))
+                    {
+                        var changeRequest = SquareChangeRequest.FromJson(bufferAsString);
+                        await HandleSquareChangeRequest(changeRequest);
+                    }
+                }
+                await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
             }
+            catch (Exception ex)
+            { }
         }
 
         private string GenerateName()
@@ -74,9 +83,10 @@ namespace WebSocketAndNetCore.Web
             await Send(message, _users.Values.ToArray());
         }
 
-        private async Task Send(string message, params WebSocket[] socketToSendTo)
+        private async Task Send(string message, params WebSocket[] socketsToSendTo)
         {
-            foreach (var theSocket in socketToSendTo)
+            var sockets = socketsToSendTo.Where(s => s.State == WebSocketState.Open);
+            foreach (var theSocket in sockets)
             {
                 var stringAsBytes = System.Text.Encoding.ASCII.GetBytes(message);
                 var byteArraySegment = new ArraySegment<byte>(stringAsBytes, 0, stringAsBytes.Length);
