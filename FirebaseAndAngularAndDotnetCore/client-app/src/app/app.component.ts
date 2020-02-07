@@ -19,8 +19,7 @@ export class AppComponent {
   }
 
   logTheUserOut() {
-    this.authService.logout().then(() => {
-      this.router.navigate(['']);
+    this.authService.logout().then(() => {      
     });
   }
 }

@@ -1,5 +1,5 @@
 <h1>Firebase Example Application</h1>
-<nav>
+<nav class="navbar">
   <a routerLink="/">Home</a>
   <a *ngIf="!currentUser.isSignedIn" routerLink="/login">Login</a>
   <a *ngIf="currentUser.isSignedIn" routerLink="/secret">Secret Area</a>

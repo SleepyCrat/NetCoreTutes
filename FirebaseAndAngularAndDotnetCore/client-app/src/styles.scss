@@ -1,1 +1,14 @@
-/* You can add global styles to this file, and also import other style files */
+.navbar {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.navbar a {
+  margin: 0.5em;
+}
+
+.googleButton {
+  background-color: red;
+  color: white;
+  font-size: 22px;
+}
