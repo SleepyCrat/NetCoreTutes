@@ -46,3 +46,4 @@ testem.log
 Thumbs.db
 
 src/environments/environment.local.ts
+/wwwroot
