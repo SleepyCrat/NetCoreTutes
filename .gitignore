@@ -348,5 +348,5 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
-/FirebaseAndAngularAndDotnetCore/keys/firebase_admin_sdk.json
+/FirebaseAndAngularAndDotnetCore/keys/firebase_admin_sdk.local.json
 /FirebaseAndAngularAndDotnetCore/appsettings.local.json

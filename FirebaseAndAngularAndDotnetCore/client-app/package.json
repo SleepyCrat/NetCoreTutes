@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve -c local",
+    "start": "ng serve",
+    "start-local": "ng serve -c local",
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",

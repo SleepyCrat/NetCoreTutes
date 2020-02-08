@@ -21,13 +21,14 @@ namespace FirebaseAndAngular.Web
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration,IWebHostEnvironment env)
         {
             Configuration = configuration;
+            HostingEnvironment = env;
         }
 
         public IConfiguration Configuration { get; }
-
+        public IWebHostEnvironment HostingEnvironment { get; set; }
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -39,6 +40,10 @@ namespace FirebaseAndAngular.Web
             services.AddControllers();
 
             var pathToKey = Path.Combine(Directory.GetCurrentDirectory(), "keys", "firebase_admin_sdk.json");
+
+            if (HostingEnvironment.IsEnvironment("local"))
+                pathToKey = Path.Combine(Directory.GetCurrentDirectory(), "keys", "firebase_admin_sdk.local.json");
+
             FirebaseApp.Create(new AppOptions
             {
                 Credential = GoogleCredential.FromFile(pathToKey)
@@ -84,7 +89,11 @@ namespace FirebaseAndAngular.Web
             {
                 spa.Options.SourcePath = "client-app";
                 if (env.IsDevelopment() || env.IsEnvironment("local"))
-                    spa.UseAngularCliServer(npmScript: "start");
+                {
+                    var startScript = env.IsEnvironment("local") ? "start-local" : "start";
+                    spa.UseAngularCliServer(npmScript: startScript);
+                }
+
             });
         }
     }
