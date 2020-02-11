@@ -56,17 +56,6 @@ namespace WebSocketAndNetCore.Web
             return name;
         }
 
-        private async Task SendSquareChangeToAll(SquareChangeRequest request)
-        {
-            var message = new SocketMessage<string>
-            {
-                MessageType = "change",
-                Payload = $"{request.Id},{request.Color}"
-            }.ToJson();
-
-            await SendAll(message);
-        }
-
         private async Task SendSquares(WebSocket socket)
         {
             var message = new SocketMessage<List<Square>>()
@@ -128,7 +117,19 @@ namespace WebSocketAndNetCore.Web
         {
             var theSquare = _squares.First(sq => sq.Id == request.Id);
             theSquare.Color = request.Color;
-            await SendSquareChangeToAll(request);
+            await SendSquaresToAll();
+            await AnnounceSquareChange(request);
+        }
+
+        private async Task SendSquaresToAll()
+        {
+            var message = new SocketMessage<List<Square>>()
+            {
+                MessageType = "squares",
+                Payload = _squares
+            };
+
+            await SendAll(message.ToJson());
         }
     }
 }

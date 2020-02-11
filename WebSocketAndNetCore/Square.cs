@@ -21,7 +21,7 @@ namespace WebSocketAndNetCore.Web
                 squares.Add(new Square()
                 {
                     Id = i,
-                    Color = colors[random.Next(0, 2)]
+                    Color = colors[(random.Next(1, 3)) - 1]
                 });
             }
             return squares;
