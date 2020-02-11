@@ -4,6 +4,7 @@ import * as firebase from 'firebase/app';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { CurrentUser } from '../models/current-user';
 import { HttpClient } from '@angular/common/http';
+import { map } from 'rxjs/operators';
 
 
 @Injectable({
@@ -15,7 +16,6 @@ export class AuthServiceService {
 
   constructor(private angularAuth: AngularFireAuth, private httpclient: HttpClient) {
     this.angularAuth.authState.subscribe((firebaseUser) => {
-      console.log('inside the subscription of the authState firebaseUser', firebaseUser);
       this.configureAuthState(firebaseUser);
     });
   }
@@ -24,24 +24,20 @@ export class AuthServiceService {
     var googleProvider = new firebase.auth.GoogleAuthProvider();
     googleProvider.addScope('email');
     googleProvider.addScope('profile');
-    return this.angularAuth.auth.signInWithPopup(googleProvider).then((auth) => {
-      console.log('inside the post sign in method firebaseUser', auth.user);
-      //this.configureAuthState(auth.user);
-    });
+    return this.angularAuth.auth.signInWithPopup(googleProvider).then((auth) => {});
   }
 
   configureAuthState(firebaseUser: firebase.User): void {
     if (firebaseUser) {
-      console.log('we have a firebase user');
       firebaseUser.getIdToken().then((theToken) => {
         console.log('we have a token');
         this.httpclient.post('/api/users/verify', { token: theToken }).subscribe({
           next: () => {
-            console.log('inside the success from server');
             let theUser = new CurrentUser();
             theUser.displayName = firebaseUser.displayName;
             theUser.email = firebaseUser.email;
             theUser.isSignedIn = true;
+            localStorage.setItem("jwt", theToken);
             this.user$.next(theUser);
           },
           error: (err) => {
@@ -62,6 +58,7 @@ export class AuthServiceService {
     theUser.displayName = null;
     theUser.email = null;
     theUser.isSignedIn = false;
+    localStorage.removeItem("jwt");
     this.user$.next(theUser);
   }
 
@@ -71,6 +68,14 @@ export class AuthServiceService {
 
   getUserobservable(): Observable<CurrentUser> {
     return this.user$.asObservable();
+  }
+
+  getToken(): string {
+    return localStorage.getItem("jwt");
+  }
+
+  getUserSecrets(): Observable<string[]> {
+    return this.httpclient.get("/api/users/secrets").pipe(map((resp: string[]) => resp));
   }
 }
 
