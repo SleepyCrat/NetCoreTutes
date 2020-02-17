@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
@@ -10,14 +11,20 @@ namespace WebSocketAndNetCore.Web
 {
     public class SquareService
     {
-        private Dictionary<string, WebSocket> _users = new Dictionary<string, WebSocket>();
+        private ConcurrentDictionary<string, WebSocket> _users = new ConcurrentDictionary<string, WebSocket>();
         private List<Square> _squares = new List<Square>(Square.GetInitialSquares());
         public async Task AddUser(WebSocket socket)
         {
             try
             {
                 var name = GenerateName();
-                _users.Add(name, socket);
+                var userAddedSuccessfully = _users.TryAdd(name, socket);
+                while (!userAddedSuccessfully)
+                {
+                    name = GenerateName();
+                    userAddedSuccessfully = _users.TryAdd(name, socket);
+                }
+                
                 GiveUserTheirName(name, socket).Wait();
                 AnnounceNewUser(name).Wait();
                 SendSquares(socket).Wait();

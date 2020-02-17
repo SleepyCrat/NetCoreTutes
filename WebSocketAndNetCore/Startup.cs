@@ -64,10 +64,6 @@ namespace WebSocketAndNetCore.Web
                         var socket = await context.WebSockets.AcceptWebSocketAsync();
                         var squareService = (SquareService)app.ApplicationServices.GetService(typeof(SquareService));
                         await squareService.AddUser(socket);
-                        while (socket.State == WebSocketState.Open)
-                        {
-                            await Task.Delay(TimeSpan.FromMinutes(1));
-                        }
                     }
                     else
                     {
