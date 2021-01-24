@@ -52,14 +52,14 @@ namespace FirebaseAndAngular.Web
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
-                    var firebaseProjectName = Configuration["FirebaseProjectName"];
-                    options.Authority = "https://securetoken.google.com/" + firebaseProjectName;
+                    var FirebaseProjectId = Configuration["FirebaseProjectId"];
+                    options.Authority = "https://securetoken.google.com/" + FirebaseProjectId;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
-                        ValidIssuer = "https://securetoken.google.com/" + firebaseProjectName,
+                        ValidIssuer = "https://securetoken.google.com/" + FirebaseProjectId,
                         ValidateAudience = true,
-                        ValidAudience = firebaseProjectName,
+                        ValidAudience = FirebaseProjectId,
                         ValidateLifetime = true
                     };
                 });
